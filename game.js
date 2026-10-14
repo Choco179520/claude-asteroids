@@ -9,14 +9,6 @@ const H = 600;
 const keys = {};
 const justPressed = {};
 
-window.addEventListener('keydown', e => {
-  justPressed[e.code] = !keys[e.code];
-  keys[e.code] = true;
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code))
-    e.preventDefault();
-});
-window.addEventListener('keyup', e => { keys[e.code] = false; });
-
 function pressed(code) {
   const val = justPressed[code];
   justPressed[code] = false;
@@ -62,6 +54,14 @@ const RADII  = [0, 16, 30, 50];   // por tamaño 1, 2, 3
 const SPEEDS = [0, 85, 55, 32];   // velocidad base por tamaño
 const POINTS = [0, 100, 50, 20];  // puntos por tamaño
 
+// Formas fijas para asteroides grandes (vértices normalizados a radio 1)
+const LARGE_SHAPES = [
+  // Forma con muesca en el lado derecho
+  [[-0.04, -1.00], [0.51, -0.82], [0.40, -0.20], [0.99, -0.02], [0.82, 0.61],
+   [0.31, 0.60], [0.07, 1.00], [-0.65, 0.65], [-0.99, 0.05], [-0.82, -0.58]],
+];
+const LARGE_SHAPE_CHANCE = 0.35;  // probabilidad de usar una forma fija
+
 class Asteroid {
   constructor(x, y, size = 3) {
     this.x    = x;
@@ -76,6 +76,12 @@ class Asteroid {
     this.vy = Math.sin(angle) * speed;
     this.rotSpeed = rand(-1.2, 1.2);
     this.rot = rand(0, Math.PI * 2);
+
+    if (size === 3 && Math.random() < LARGE_SHAPE_CHANCE) {
+      const shape = LARGE_SHAPES[randInt(0, LARGE_SHAPES.length - 1)];
+      this.verts = shape.map(([vx, vy]) => [vx * this.radius, vy * this.radius]);
+      return;
+    }
 
     // Polígono irregular
     const n = randInt(8, 13);
